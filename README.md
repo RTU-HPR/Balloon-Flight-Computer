@@ -1,2 +1,2 @@
 # Balloon-Flight-Computer
-# INITAL VERSION IS JUST A COPY OF PAYLOAD FLIGTH COMPUTER SOFTWARE
+Main repository for RTU HPR Team Balloon platform flight computer software

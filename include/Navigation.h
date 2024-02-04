@@ -64,7 +64,7 @@ public:
 
   /**
    * @brief Read the ranging data
-   * @param config payload config object
+   * @param config balloon config object
    * @return Whether the ranging data was read successfully
    * @bug I couldn't pass the array of Ranging_wrapper::Ranging_Result to the function, so
    * I had to pass the entire navigation data structure and then access the array from there

@@ -2,6 +2,12 @@
 #include <Config.h>
 #include <Logging.h>
 
+// Get performance monitoring global variables
+extern int on_board_baro_read_time;
+extern int imu_read_time;
+extern int battery_voltage_read_time;
+extern int outside_thermistor_read_time;
+
 class Sensors
 {
 private:
@@ -34,20 +40,6 @@ private:
   AdcVoltage _batteryVoltageReader;
 
   /**
-   * @brief Object representing the container barometer.
-   *
-   * This class provides functionality to interface with the BMP180 barometer.
-   */
-  Adafruit_BMP085 _containerBaro;
-
-  /**
-   * @brief Object representing the container temperature sensor.
-   *
-   * This class provides functionality to interface with the STS35 temperature sensor.
-   */
-  ClosedCube::Sensor::STS35 _containerTemperatureSensor;
-
-  /**
    * @brief Structure to hold IMU sensor data.
    */
   struct IMU_Data
@@ -65,26 +57,9 @@ private:
     float temperature;
   };
 
-  /**
-   * @brief Structure to hold container barometer data.
-   */
-  struct ContainerBarometer_Data
-  {
-    float temperature;
-    float pressure;
-  };
-
-  /**
-   * @brief Structure to hold container temperature data.
-   */
-  struct ContainerTemperature_Data
-  {
-    float temperature;
-  };
-
 public:
   String sensorErrorString = "";
-  
+
   /**
    * @brief Structure to store all sensor data
    */
@@ -94,8 +69,6 @@ public:
     IMU_Data imu;
     AdcVoltage::AdcVoltage_Data battery;
     Thermistor_Data outsideThermistor;
-    ContainerBarometer_Data containerBaro;
-    ContainerTemperature_Data containerTemperature;
   };
 
   SENSOR_DATA data;
@@ -113,14 +86,6 @@ public:
    *
    */
   void readSensors();
-
-  /**
-   * Initializes the port extender.
-   *
-   * @param config The configuration object.
-   * @return True if the port extender was successfully initialized, false otherwise.
-   */
-  bool beginPortExtender(Config &config);
 
   /**
    * Initializes the on-board barometer sensor.
@@ -155,22 +120,6 @@ public:
   bool beginBatteryVoltageReader(Config &config);
 
   /**
-   * @brief Initializes the container barometer sensor.
-   *
-   * @param config The configuration object containing the settings for the sensor.
-   * @return True if the initialization was successful, false otherwise.
-   */
-  bool beginContainerBaro(Config &config);
-
-  /**
-   * Initializes the container temperature sensor.
-   *
-   * @param config The configuration object for the sensor.
-   * @return True if the sensor was successfully initialized, false otherwise.
-   */
-  bool beginContainerTemperatureSensor(Config &config);
-
-  /**
    * @brief Reads data from the onboard barometer.
    *
    * @return true if the data was successfully read, false otherwise.
@@ -197,18 +146,4 @@ public:
    * @return true if the temperature was successfully read, false otherwise.
    */
   bool readOutsideThermistor();
-
-  /**
-   * @brief Reads the container barometer temperature and pressure.
-   *
-   * @return true if the temperature and pressure were successfully read, false otherwise.
-   */
-  bool readContainerBarometer();
-
-  /**
-   * @brief Reads the container temperature sensor.
-   *
-   * @return true if the temperature was successfully read, false otherwise.
-   */
-  bool readContainerTemperature();
 };

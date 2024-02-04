@@ -8,10 +8,14 @@ void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communic
     return;
   }
 
-  // Using gps time and millis for redundancy purposes
   if (dataEssentialSendActionEnabled)
   {
     runEssentialDataSendAction(sensors, navigation, communication, logging, config);
+  }
+
+  if (buzzerActionEnabled)
+  {
+    runBuzzerAction(config);
   }
 }
 
@@ -23,7 +27,7 @@ void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigatio
 
     // Create packet
     uint16_t ccsds_packet_length;
-    byte *ccsds_packet = create_ccsds_telemetry_packet(config.PFC_ESSENTIAL_DATA_RESPONSE, dataEssentialResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+    byte *ccsds_packet = create_ccsds_telemetry_packet(config.BFC_ESSENTIAL_DATA_RESPONSE, dataEssentialResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
 
     // Send packet
     if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
@@ -38,6 +42,19 @@ void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigatio
 
     // Free memory after the packet has been sent
     delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
+  }
+}
+
+void Actions::runBuzzerAction(Config &config)
+{
+  // If the descent flag is set, or the balloon has been on for more than 2 hours, start the beeping
+  if (config.config_file_values.descent_flag == 1 or millis() > config.BUZZER_ACTION_START_TIME)
+  {
+    if (millis() - buzzerLastStateTime >= config.BUZZER_BEEP_TIME)
+    {
+      buzzerLastStateTime = millis();
+      digitalWrite(config.BUZZER_PIN, !digitalRead(config.BUZZER_PIN));
+    }
   }
 }
 

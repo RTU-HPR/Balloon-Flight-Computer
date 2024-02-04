@@ -1,5 +1,11 @@
 #include "Sensors.h"
 
+// Performance monitoring
+unsigned int last_on_board_baro_read_millis = 0;
+unsigned int last_imu_read_millis = 0;
+unsigned int last_battery_voltage_read_millis = 0;
+unsigned int last_outside_thermistor_read_millis = 0;
+
 bool Sensors::begin(Logging &logging, Config &config)
 {
   bool success = true;
@@ -8,18 +14,6 @@ bool Sensors::begin(Logging &logging, Config &config)
   analogReadResolution(12);
 
   // MAIN BOARD
-  // Initialize port extender
-  if (!beginPortExtender(config))
-  {
-    String errorString = "Port extender begin fail";
-    logging.recordError(errorString);
-    success = false;
-  }
-  else
-  {
-    Serial.println("Port extender initialization complete");
-  }
-
   // Initialize MS56XX
   if (!beginOnBoardBaro(config))
   {
@@ -55,7 +49,7 @@ bool Sensors::begin(Logging &logging, Config &config)
   {
     Serial.println("Thermistor initialization complete");
   }
-  
+
   // Initialize battery voltage reader
   if (!beginBatteryVoltageReader(config))
   {
@@ -67,31 +61,6 @@ bool Sensors::begin(Logging &logging, Config &config)
   {
     Serial.println("Battery voltage reader initialization complete");
   }
-
-  // HEATED CONTAINER
-  // Initialize container barometer
-  if (!beginContainerBaro(config))
-  {
-    // String errorString = "Container barometer begin fail";
-    // logging.recordError(errorString);
-    // success = false; // Disabled for now, since the sensor is not connected
-  }
-  else
-  {
-    Serial.println("Container barometer initialization complete");
-  }
-
-  // Initialize container temperature sensor
-  if (!beginContainerTemperatureSensor(config))
-  {
-    // String errorString = "Container temperature begin fail";
-    // logging.recordError(errorString);
-    // success = false; // Disabled for now, since the sensor is not connected
-  }
-  else
-  {
-    Serial.println("Container temperature sensor initialization complete");
-  }
   Serial.println();
 
   return success;
@@ -99,41 +68,21 @@ bool Sensors::begin(Logging &logging, Config &config)
 
 void Sensors::readSensors()
 {
-  // Read MS56XX
+  last_on_board_baro_read_millis = millis();
   readOnBoardBaro();
+  on_board_baro_read_time = millis() - last_on_board_baro_read_millis;
 
-  // Read IMU
+  last_imu_read_millis = millis();
   readImu();
+  imu_read_time = millis() - last_imu_read_millis;
 
-  // Read battery voltage
+  last_battery_voltage_read_millis = millis();
   readBatteryVoltage();
+  battery_voltage_read_time = millis() - last_battery_voltage_read_millis;
 
-  // Read outside thermistor
+  last_outside_thermistor_read_millis = millis();
   readOutsideThermistor();
-
-  // Read container barometer
-  // readContainerBarometer();
-
-  // Read container temperature sensor
-  // readContainerTemperature();
-}
-
-bool Sensors::beginPortExtender(Config &config)
-{
-  // Port extender
-  // Initialize, set all pins to low, DON'T use it anywhere else
-  // It seemed to cause problems to other I2C devices on the same bus
-  // Further testing should be done on the new version of the software
-  PCF8575 _port_extender = PCF8575(config.pcf_config.i2c_address, config.pcf_config.wire);
-  if (!_port_extender.begin())
-  {
-    Serial.println("Port extender initialization failed!");
-    return false;
-  }
-  _port_extender.write(config.PORT_EXTENDER_BUZZER_PIN, LOW);
-  _port_extender.write(config.PORT_EXTENDER_LED_2_PIN, LOW);
-  _port_extender.write(config.PORT_EXTENDER_LED_1_PIN, LOW);
-  return true;
+  outside_thermistor_read_time = millis() - last_outside_thermistor_read_millis;
 }
 
 bool Sensors::beginOnBoardBaro(Config &config)
@@ -174,29 +123,6 @@ bool Sensors::beginOutsideThermistor(Config &config)
 bool Sensors::beginBatteryVoltageReader(Config &config)
 {
   _batteryVoltageReader.begin(config.battery_voltage_reader_config);
-  return true;
-}
-
-bool Sensors::beginContainerBaro(Config &config)
-{
-  if (!_containerBaro.begin(config.BMP180_config.i2c_address, config.BMP180_config.wire))
-  {
-    return false;
-  }
-  return true;
-}
-
-bool Sensors::beginContainerTemperatureSensor(Config &config)
-{
-  _containerTemperatureSensor = ClosedCube::Sensor::STS35(config.STS35_config.wire);
-  _containerTemperatureSensor.address(config.STS35_config.i2c_address);
-
-  // Test temp probe to see if its working
-  float test = _containerTemperatureSensor.readTemperature();
-  if (test > 100.00 || test < -100.0 || test == 0.00)
-  {
-    return false;
-  }
   return true;
 }
 
@@ -244,33 +170,5 @@ bool Sensors::readOutsideThermistor()
     return true;
   }
   Serial.println("Outside thermistor reading failed!");
-  return false;
-}
-
-bool Sensors::readContainerBarometer()
-{
-  float new_pressure = _containerBaro.readPressure();
-  float new_temperature = _containerBaro.readTemperature();
-
-  if ((new_pressure > 1000 && new_pressure < 120000) && (new_temperature > -100 && new_temperature < 100)) // Between 1000 and 120_000 Pa and -100 and 100 C
-  {
-    data.containerBaro.pressure = new_pressure;
-    data.containerBaro.temperature = new_temperature;
-    return true;
-  }
-  Serial.println("Container barometer reading failed!");
-  return false;
-}
-
-bool Sensors::readContainerTemperature()
-{
-
-  float new_temperature = _containerTemperatureSensor.readTemperature();
-  if (new_temperature > -100 && new_temperature < 100) // Between -100 and 100 C
-  {
-    data.containerTemperature.temperature = new_temperature;
-    return true;
-  }
-  Serial.println("Container temperature sensor reading failed!");
   return false;
 }

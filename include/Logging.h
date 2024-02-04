@@ -27,11 +27,6 @@ private:
    */
   bool writeInfo(String &data);
 
-  /**
-   * @brief Write a string to the config file
-   */
-  void writeConfig(Config &config);
-
 public:
   /**
    * @brief Initialise the logging
@@ -46,6 +41,11 @@ public:
    * @return Whether the config file was read successfully
    */
   bool readConfig(Config &config);
+
+  /**
+   * @brief Write a string to the config file
+   */
+  void writeConfig(Config &config);
 
   /**
    * @brief Add a string to the info/error queue
@@ -72,7 +72,7 @@ public:
    * @return Whether the info message was recorded successfully
    */
   bool recordInfo(String &info);
-  
+
   /**
    * @brief Record an error message
    * @param error Error message

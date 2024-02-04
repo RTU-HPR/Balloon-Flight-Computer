@@ -1,6 +1,15 @@
 #include <Actions.h>
 
-void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Heater &heater, Config &config)
+// Performance monitoring
+unsigned long last_sensor_read_millis = 0;
+unsigned long last_gps_read_millis = 0;
+unsigned long last_logging_millis = 0;
+
+// Get Servo objects
+extern Servo servo_1;
+extern Servo servo_2;
+
+void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
   // Receive any commands
   if (commandReceiveActionEnabled)
@@ -17,19 +26,17 @@ void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Comm
   // Run the sensor action
   if (sensorActionEnabled)
   {
+    last_sensor_read_millis = millis();
     runSensorAction(sensors);
-  }
-
-  // Run the heater action
-  if (heaterActionEnabled)
-  {
-    runHeaterAction(heater, sensors);
+    sensor_read_time = millis() - last_sensor_read_millis;
   }
 
   // Run the GPS action
   if (gpsActionEnabled)
   {
+    last_gps_read_millis = millis();
     runGpsAction(navigation);
+    gps_read_time = millis() - last_gps_read_millis;
   }
 
   // Run the ranging action
@@ -41,13 +48,24 @@ void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Comm
   // Run the logging action
   if (loggingActionEnabled)
   {
-    runLoggingAction(logging, navigation, sensors);
+    last_logging_millis = millis();
+    runLoggingAction(logging, navigation, sensors, config);
+    logging_time = millis() - last_logging_millis;
+    if (loggable_packed_id % 50 == 0)
+    {
+      Serial.println("Logged packet count: " + String(loggable_packed_id) + " | Turned on time: " + String(millis() / 1000) + " s");
+    }
   }
 
-  // Run the pyro channel manager action
-  if (pyroChannelManagerActionEnabled)
+  if (descentActionEnabled)
   {
-    runPyroChannelManagerAction(config);
+    runDescentAction(logging, config, sensors, navigation);
+  }
+
+  // Run the recovery channel manager action
+  if (recoveryChannelManagerActionEnabled)
+  {
+    runRecoveryChannelManagerAction(config);
   }
 }
 
@@ -117,27 +135,27 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     }
     else if (packet_id == 1003)
     {
-      pyroFireActionEnabled = true;
+      recoveryFireActionEnabled = true;
 
-      // Get the pyro channel
-      Converter pyroChannel[1];
+      // Get the recovery channel
+      Converter recoveryChannel[1];
 
-      // The first value is the packet id, and the second is the pyro channel
-      extract_ccsds_data_values(packet_data, pyroChannel, "uint8");
+      // The first value is the packet id, and the second is the recovery channel
+      extract_ccsds_data_values(packet_data, recoveryChannel, "uint8");
 
-      // Set the appropriate pyro channel flag
-      if (pyroChannel[0].i8 == 1)
+      // Set the appropriate recovery channel flag
+      if (recoveryChannel[0].i8 == 1)
       {
-        pyroChannelShouldBeFired[0] = true;
+        recoveryChannelShouldBeFired[0] = true;
       }
-      else if (pyroChannel[0].i8 == 2)
+      else if (recoveryChannel[0].i8 == 2)
       {
-        pyroChannelShouldBeFired[1] = true;
+        recoveryChannelShouldBeFired[1] = true;
       }
       else
       {
-        Serial.println("Invalid pyro channel: " + String(pyroChannel[0].i8));
-        pyroFireActionEnabled = false;
+        Serial.println("Invalid recovery channel: " + String(recoveryChannel[0].i8));
+        recoveryFireActionEnabled = false;
       }
     }
     else
@@ -169,21 +187,15 @@ void Actions::runSensorAction(Sensors &sensors)
   sensors.readSensors();
 }
 
-void Actions::runHeaterAction(Heater &heater, const Sensors &sensors)
-{
-  // Update the heater
-  heater.update(sensors.data.containerTemperature.temperature);
-}
-
 void Actions::runGpsAction(Navigation &navigation)
 {
   navigation.readGps(navigation.navigation_data);
 }
 
-void Actions::runLoggingAction(Logging &logging, Navigation &navigation, Sensors &sensors)
+void Actions::runLoggingAction(Logging &logging, Navigation &navigation, Sensors &sensors, Config &config)
 {
   // Log the data to the sd card
-  String packet = createLoggablePacket(sensors, navigation);
+  String packet = createLoggablePacket(sensors, navigation, config);
   logging.writeTelemetry(packet);
 }
 
@@ -194,76 +206,61 @@ void Actions::runRangingAction(Navigation &navigation, Config &config)
 
 void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config &config)
 {
-  // Serial.println("GPS epoch time: " + String(navigation.navigation_data.gps.epoch_time));
-  if (millis() - lastCommunicationCycle <= 3000)
-  {
-    // Serial.println("Communication cycle already started: " + String(millis() - lastCommunicationCycle));
-    return;
-  }
   if (navigation.navigation_data.gps.epoch_time == 0)
   {
     return;
   }
 
-  int comm_cycle_interval_sec = config.COMMUNICATION_CYCLE_INTERVAL / 1000;
-  if (navigation.navigation_data.gps.second % comm_cycle_interval_sec == 0)
+  if (navigation.navigation_data.gps.second % config.COMMUNICATION_CYCLE_INTERVAL == 0)
   {
     lastCommunicationCycle = millis();
     dataEssentialSendActionEnabled = true;
-    Serial.println("New communication cycle started: " + String(lastCommunicationCycle) + " " + String(navigation.navigation_data.gps.second));
+    Serial.println("New communication cycle started: " + String(lastCommunicationCycle) + " " + String(navigation.navigation_data.gps.hour) + ":" + String(navigation.navigation_data.gps.minute) + ":" + String(navigation.navigation_data.gps.second));
   }
 }
 
-void Actions::runPyroChannelManagerAction(Config &config)
+void Actions::runRecoveryChannelManagerAction(Config &config)
 {
-  // Check if the pyro channel should be fired
+  // Check if the recovery channel should be fired
   for (int i = 0; i < 2; i++)
   {
-    if (pyroChannelShouldBeFired[i])
+    if (recoveryChannelShouldBeFired[i])
     {
-      // If the pyro channel has not been fired yet, enable it
-      if (pyroChannelFireTimes[i] == 0)
+      // If the recovery channel has not been fired yet, enable it
+      if (recoveryChannelFireTimes[i] == 0)
       {
-        pyroChannelFireTimes[i] = millis();
+        recoveryChannelFireTimes[i] = millis();
         if (i == 0)
         {
-          digitalWrite(config.PYRO_CHANNEL_1, HIGH);
-          Serial.println("Pyro channel 1 fired");
+          servo_1.write(config.SERVO_FINAL_POSITION);
+          Serial.println("Servo 1 engaged");
         }
         else if (i == 1)
         {
-          digitalWrite(config.PYRO_CHANNEL_2, HIGH);
-          Serial.println("Pyro channel 2 fired");
+          servo_2.write(config.SERVO_FINAL_POSITION);
+          Serial.println("Servo 2 engaged");
         }
       }
-
-      // Check if the pyro channel should be toggled off
-      if (millis() - pyroChannelFireTimes[i] >= config.PYRO_CHANNEL_FIRE_TIME)
-      {
-        // Disable the pyro channel
-        if (i == 0)
-        {
-          digitalWrite(config.PYRO_CHANNEL_1, LOW);
-          Serial.println("Pyro channel 1 turned off");
-        }
-        else if (i == 1)
-        {
-          digitalWrite(config.PYRO_CHANNEL_2, LOW);
-          Serial.println("Pyro channel 2 turned off");
-        }
-
-        // Reset the pyro channel flag, but keep the fire time as it will not be fired again
-        pyroChannelShouldBeFired[i] = false;
-      }
+      // Reset the recovery channel flag, but keep the fire time as it will not be fired again
+      recoveryChannelShouldBeFired[i] = false;
     }
   }
 }
 
-String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
+void Actions::runDescentAction(Logging &logging, Config &config, Sensors &sensors, Navigation &navigation)
+{
+  // No decent action is currently required for the balloon platform
+}
+
+String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation, Config &config)
 {
   String packet = "";
-  // UKHAS
   packet += String(loggable_packed_id);
+  packet += ",";
+  packet += String(millis());
+  packet += ",";
+  // GPS
+  packet += String(navigation.navigation_data.gps.epoch_time);
   packet += ",";
   packet += String(navigation.navigation_data.gps.hour);
   packet += ":";
@@ -277,18 +274,24 @@ String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
   packet += ",";
   packet += String(navigation.navigation_data.gps.altitude, 2);
   packet += ",";
-  packet += String(sensors.data.outsideThermistor.temperature, 2);
+  packet += String(navigation.navigation_data.gps.speed, 2);
   packet += ",";
   packet += String(navigation.navigation_data.gps.satellites);
   packet += ",";
+  packet += String(navigation.navigation_data.gps.heading);
+  packet += ",";
+  packet += String(navigation.navigation_data.gps.pdop);
+  packet += ",";
+  // Onboard temperature/pressure
+  packet += String(sensors.data.onBoardBaro.temperature, 2);
+  packet += ",";
   packet += String(sensors.data.onBoardBaro.pressure);
   packet += ",";
-  packet += String(navigation.navigation_data.gps.speed, 2);
-  packet += ",";
   packet += String(sensors.data.onBoardBaro.altitude, 2);
-  // CUSTOM
-  // IMU
   packet += ",";
+  packet += String(sensors.data.outsideThermistor.temperature, 2);
+  packet += ",";
+  // IMU
   packet += String(sensors.data.imu.accel.acceleration.x, 4);
   packet += ",";
   packet += String(sensors.data.imu.accel.acceleration.y, 4);
@@ -308,27 +311,6 @@ String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
   packet += String(sensors.data.imu.gyro.gyro.z, 4);
   packet += ",";
   packet += String(sensors.data.imu.temp.temperature, 2);
-  // MS56XX
-  packet += ",";
-  packet += String(sensors.data.onBoardBaro.temperature, 2);
-  // Container temperature
-  packet += ",";
-  packet += String(sensors.data.containerTemperature.temperature, 2);
-  // Container baro
-  packet += ",";
-  packet += String(sensors.data.containerBaro.temperature, 2);
-  packet += ",";
-  packet += String(sensors.data.containerBaro.pressure);
-  packet += ",";
-  // Battery
-  packet += String(sensors.data.battery.voltage, 2);
-  packet += ",";
-  // GPS
-  packet += String(navigation.navigation_data.gps.epoch_time);
-  packet += ",";
-  packet += String(navigation.navigation_data.gps.heading);
-  packet += ",";
-  packet += String(navigation.navigation_data.gps.pdop);
   // Ranging
   packet += ",";
   packet += String(navigation.navigation_data.ranging[0].distance, 2);
@@ -367,13 +349,33 @@ String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
   packet += ",";
   packet += String(navigation.navigation_data.ranging_position.height, 2);
   packet += ",";
-  // TODO: Add Heater/PID data
-  // MISC
-  packet += String(millis());
+  // Battery/Heater current
+  packet += String(sensors.data.battery.voltage, 2);
   packet += ",";
+  // Performance/debugging
   packet += String(rp2040.getUsedHeap());
   packet += ",";
-  packet += String(loopTime);
+  packet += String(total_loop_time);
+  packet += ",";
+  packet += String(continuous_actions_time);
+  packet += ",";
+  packet += String(timed_actions_time);
+  packet += ",";
+  packet += String(requested_actions_time);
+  packet += ",";
+  packet += String(gps_read_time);
+  packet += ",";
+  packet += String(logging_time);
+  packet += ",";
+  packet += String(sensor_read_time);
+  packet += ",";
+  packet += String(on_board_baro_read_time);
+  packet += ",";
+  packet += String(imu_read_time);
+  packet += ",";
+  packet += String(battery_voltage_read_time);
+  packet += ",";
+  packet += String(outside_thermistor_read_time);
 
   loggable_packed_id++;
 
