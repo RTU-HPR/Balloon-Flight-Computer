@@ -38,9 +38,6 @@ private:
   void runLoggingAction(Logging &logging, Navigation &navigation, Sensors &sensors, Config &config);
   bool loggingActionEnabled = true;
 
-  void runRangingAction(Navigation &navigation, Config &config);
-  bool rangingSendActionEnabled = true;
-
   void runGetCommunicationCycleStartAction(Navigation &navigation, Config &config);
   bool getCommunicationCycleStartActionEnabled = true;
   unsigned long lastCommunicationCycle = 0;

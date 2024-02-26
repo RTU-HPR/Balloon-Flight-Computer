@@ -168,17 +168,5 @@ void Balloon::begin()
     Serial.println("GPS initialized successfully");
   }
 
-  // Initialise ranging
-  if (!navigation.beginRanging(config.ranging_device, config.ranging_mode))
-  {
-    String errorString = "Ranging begin fail";
-    Serial.println(errorString);
-    logging.recordError(errorString);
-  }
-  else
-  {
-    Serial.println("Navigation initialized successfully");
-  }
-
   Serial.println();
 }

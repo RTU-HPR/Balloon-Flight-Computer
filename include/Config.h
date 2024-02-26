@@ -16,7 +16,6 @@
 
 // Our wrappers
 #include <RadioLib_wrapper.h>
-#include <ranging_wrapper.h>
 #include <Gps_Wrapper.h>
 #include <Sd_card_wrapper.h>
 
@@ -48,36 +47,12 @@ public:
       // .tx_enable = 0, // only needed if rf_switching = gpio
       .reset = 7,
       .sync_word = 0xF4,
-      .tx_power = 10,
+      .tx_power = 22,
       .spreading = 11,
       .coding_rate = 8,
       .signal_bw = 62.5,
       .frequency_correction = false,
       .spi_bus = &SPI,
-  };
-
-  // Ranging 2.4 GHZ LoRa
-  Ranging_Wrapper::Ranging_Slave RANGING_SLAVES[3] =
-      {
-          {.position = {0, 0, 0}, .address = 0x12345678},
-          {.position = {0, 0, 0}, .address = 0xABCD9876},
-          {.position = {0, 0, 0}, .address = 0x9A8B7C6D},
-  };
-  Ranging_Wrapper::Mode ranging_mode = Ranging_Wrapper::Mode::MASTER;
-  const int RANGING_LORA_TIMEOUT = 200;
-  Ranging_Wrapper::Lora_Device ranging_device =
-      {
-          .FREQUENCY = 2405.6,
-          .CS = 15,
-          .DIO0 = 11, // busy
-          .DIO1 = 12,
-          .RESET = 13,
-          .SYNC_WORD = 0xF5,
-          .TXPOWER = 14,
-          .SPREADING = 10,
-          .CODING_RATE = 7,
-          .SIGNAL_BW = 406.25,
-          .SPI = &SPI,
   };
 
   // GPS
@@ -130,7 +105,7 @@ public:
   // MS56XX
   MS56XX::MS56XX_Config ms56xx_config = {
       .wire = &Wire,
-      .i2c_address = MS56XX::MS56XX_I2C_ADDRESS::I2C_0x76, // or 0x77
+      .i2c_address = MS56XX::MS56XX_I2C_ADDRESS::I2C_0x76, // or 0x76
       .ms56xx_type = MS56XX::MS56XX_TYPE::MS5611,          // or MS5607
       .oversampling = MS56XX::MS56XX_OVERSAMPLING::OSR_STANDARD,
   };
@@ -202,9 +177,8 @@ public:
   // Servos
   const int RECOVERY_CHANNEL_1 = 19;
   const int RECOVERY_CHANNEL_2 = 18;
-  const int SERVO_INITIAL_POSITION = 0;
-  const int SERVO_FINAL_POSITION = 60;
-
+  const int SERVO_INITIAL_POSITION = 75;
+  const int SERVO_FINAL_POSITION = 0;
 
   const int LAUNCH_RAIL_SWITCH_PIN = 10;
   const int LAUNCH_RAIL_SWITCH_OFF_THRESHOLD = 5000;
@@ -235,11 +209,11 @@ public:
   const int BFC_COMPLETE_DATA_RESPONSE = 201;
   const int BFC_INFO_ERROR_RESPONSE = 202;
   const int BFC_FORMAT_RESPONSE = 203;
-  const int BFC_RECOVERY_RESPONSE = 204;
+  const int BFC_RECOVERY_RESPONSE = 205;
 
   // Receiveable commands
   const int BFC_COMPLETE_DATA_REQUEST = 2000;
   const int BFC_INFO_ERROR_REQUEST = 2001;
   const int BFC_FORMAT_REQUEST = 2002;
-  const int BFC_RECOVERY_REQUEST = 2003;
+  const int BFC_RECOVERY_REQUEST = 2004;
 };

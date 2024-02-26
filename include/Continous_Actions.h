@@ -11,12 +11,13 @@ extern Servo servo_2;
 
 void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
+  Serial.flush(); // DON'T REMOVE. WITHOUT THIS THE PICO STOPS WORKING AT RANDOM TIMES
   // Receive any commands
   if (commandReceiveActionEnabled)
   {
     runCommandReceiveAction(communication, logging, config);
   }
-
+  // Serial.println("Finished command receive action");
   // Check if the communication cycle should be started
   if (getCommunicationCycleStartActionEnabled)
   {
@@ -39,15 +40,10 @@ void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Comm
     gps_read_time = millis() - last_gps_read_millis;
   }
 
-  // Run the ranging action
-  if (rangingSendActionEnabled)
-  {
-    runRangingAction(navigation, config);
-  }
-
   // Run the logging action
   if (loggingActionEnabled)
   {
+    // Serial.println("Logging: + " + String(millis()) + " ms | ID: " + String(loggable_packed_id));
     last_logging_millis = millis();
     runLoggingAction(logging, navigation, sensors, config);
     logging_time = millis() - last_logging_millis;
@@ -121,19 +117,19 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     Serial.println("Packet ID: " + String(packet_id));
 
     // Set the action flag according to the received command
-    if (packet_id == 1000)
+    if (packet_id == config.BFC_COMPLETE_DATA_REQUEST)
     {
       completeDataRequestActionEnabled = true;
     }
-    else if (packet_id == 1001)
+    else if (packet_id == config.BFC_INFO_ERROR_REQUEST)
     {
       infoErrorRequestActionEnabled = true;
     }
-    else if (packet_id == 1002)
+    else if (packet_id == config.BFC_FORMAT_REQUEST)
     {
       formatStorageActionEnabled = true;
     }
-    else if (packet_id == 1003)
+    else if (packet_id == config.BFC_RECOVERY_REQUEST)
     {
       recoveryFireActionEnabled = true;
 
@@ -199,13 +195,12 @@ void Actions::runLoggingAction(Logging &logging, Navigation &navigation, Sensors
   logging.writeTelemetry(packet);
 }
 
-void Actions::runRangingAction(Navigation &navigation, Config &config)
-{
-  navigation.readRanging(config, navigation.navigation_data);
-}
-
 void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config &config)
 {
+  if (millis() - lastCommunicationCycle <= 3000)
+  {
+    return;
+  }
   if (navigation.navigation_data.gps.epoch_time == 0)
   {
     return;
@@ -311,43 +306,6 @@ String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation, C
   packet += String(sensors.data.imu.gyro.gyro.z, 4);
   packet += ",";
   packet += String(sensors.data.imu.temp.temperature, 2);
-  // Ranging
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[0].distance, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[0].f_error, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[0].rssi, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[0].snr, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[0].time, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[1].distance, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[1].f_error, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[1].rssi, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[1].snr, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[1].time, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[2].distance, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[2].f_error, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[2].rssi, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[2].snr, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging[2].time, 2);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging_position.lat, 7);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging_position.lng, 7);
-  packet += ",";
-  packet += String(navigation.navigation_data.ranging_position.height, 2);
   packet += ",";
   // Battery/Heater current
   packet += String(sensors.data.battery.voltage, 2);

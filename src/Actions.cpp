@@ -16,11 +16,9 @@ void Actions::runAllActions(Sensors &sensors, Navigation &navigation, Communicat
   last_continous_actions_millis = millis();
   runContinousActions(sensors, navigation, communication, logging, config);
   continuous_actions_time = millis() - last_continous_actions_millis;
-
   last_timed_actions_millis = millis();
   runTimedActions(sensors, navigation, communication, logging, config);
   timed_actions_time = millis() - last_timed_actions_millis;
-
   last_requested_actions_millis = millis();
   runRequestedActions(sensors, navigation, communication, logging, config);
   requested_actions_time = millis() - last_requested_actions_millis;
