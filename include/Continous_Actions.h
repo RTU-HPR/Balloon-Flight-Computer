@@ -11,7 +11,6 @@ extern Servo servo_2;
 
 void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
-  Serial.flush(); // DON'T REMOVE. WITHOUT THIS THE PICO STOPS WORKING AT RANDOM TIMES
   // Receive any commands
   if (commandReceiveActionEnabled)
   {
@@ -119,7 +118,8 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     // Set the action flag according to the received command
     if (packet_id == config.BFC_COMPLETE_DATA_REQUEST)
     {
-      completeDataRequestActionEnabled = true;
+      // NOT CORRECTLY IMPLEMENTED, SO IT IS DISABLED
+      completeDataRequestActionEnabled = false;
     }
     else if (packet_id == config.BFC_INFO_ERROR_REQUEST)
     {

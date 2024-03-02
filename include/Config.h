@@ -187,6 +187,7 @@ public:
 
   // Buzzer
   const int BUZZER_PIN = 16;
+  const int OUTSIDE_BUZZER_PIN = 22;
   const int BUZZER_BEEP_TIME = 2000;
   const int BUZZER_ACTION_START_TIME = 3600 * 1000; // 3600 seconds after turning on == 1 hour
 

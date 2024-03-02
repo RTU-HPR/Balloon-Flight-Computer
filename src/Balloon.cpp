@@ -67,15 +67,17 @@ void Balloon::begin()
   pinMode(config.RECOVERY_CHANNEL_1, OUTPUT_12MA);
   pinMode(config.RECOVERY_CHANNEL_2, OUTPUT_12MA);
   servo_1.attach(config.RECOVERY_CHANNEL_1);
-  servo_1.write(config.SERVO_INITIAL_POSITION);
   servo_2.attach(config.RECOVERY_CHANNEL_2);
+  servo_1.write(config.SERVO_INITIAL_POSITION);
   servo_2.write(config.SERVO_INITIAL_POSITION);
 
   Serial.println("Recovery channels set to output and pulled low");
 
-  // Set the launch rail switch to input
-  pinMode(config.LAUNCH_RAIL_SWITCH_PIN, INPUT);
-  Serial.println("Launch rail switch set to input");
+  // Set the buzzers to output and pull them low
+  pinMode(config.BUZZER_PIN, OUTPUT_12MA);
+  pinMode(config.OUTSIDE_BUZZER_PIN, OUTPUT_12MA);
+  digitalWrite(config.BUZZER_PIN, LOW);
+  digitalWrite(config.OUTSIDE_BUZZER_PIN, LOW);
 
   // Initialize the SD card
   if (!logging.begin(config))

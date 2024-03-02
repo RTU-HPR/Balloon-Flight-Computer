@@ -52,10 +52,16 @@ void setup()
                   freq,
                   freq);
 
+  // Enable watchdog
+  rp2040.wdt_begin(4000);
+
   balloon.begin();
   Serial.println("Balloon setup complete");
   Serial.println("CPU Speed: " + String(rp2040.f_cpu() / 1000000) + " MHz");
   Serial.println();
+
+  // Reset the watchdog
+  rp2040.wdt_reset();
 }
 
 void loop()
@@ -63,4 +69,7 @@ void loop()
   last_total_loop_millis = millis();
   balloon.actions.runAllActions(balloon.sensors, balloon.navigation, balloon.communication, balloon.logging, balloon.config);
   total_loop_time = millis() - last_total_loop_millis;
+
+  // Reset the watchdog every loop
+  rp2040.wdt_reset();
 }

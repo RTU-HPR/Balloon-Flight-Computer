@@ -56,6 +56,7 @@ private:
 
   void runBuzzerAction(Config &config);
   bool buzzerActionEnabled = true;
+  bool buzzerLastState = false;
   unsigned long buzzerLastStateTime = 0;
 
   void runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
