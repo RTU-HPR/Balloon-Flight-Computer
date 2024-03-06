@@ -174,6 +174,11 @@ public:
   // logging
   const int PC_BAUDRATE = 115200;
 
+  // Battery
+  const float BATTERY_LOW_VOLTAGE = 5.5;
+  const int BATTERY_LOW_BEEP_INTERVAL = 200;
+
+
   // Servos
   const int RECOVERY_CHANNEL_1 = 19;
   const int RECOVERY_CHANNEL_2 = 18;

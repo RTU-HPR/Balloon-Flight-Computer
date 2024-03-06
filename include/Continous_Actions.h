@@ -62,6 +62,12 @@ void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Comm
   {
     runRecoveryChannelManagerAction(config);
   }
+
+  // Check the battery voltage
+  if (batteryVoltageCheckEnabled)
+  {
+    checkBatteryVoltage(sensors, logging, config);
+  }
 }
 
 void Actions::runCommandReceiveAction(Communication &communication, Logging &logging, Config &config)
@@ -268,6 +274,25 @@ void Actions::runRecoveryChannelManagerAction(Config &config)
 void Actions::runDescentAction(Logging &logging, Config &config, Sensors &sensors, Navigation &navigation)
 {
   // No decent action is currently required for the balloon platform
+}
+
+void Actions::checkBatteryVoltage(Sensors &sensors, Logging &logging, Config &config)
+{
+  // Check if the battery voltage is below the threshold
+  if (sensors.data.battery.voltage <= config.BATTERY_LOW_VOLTAGE)
+  {
+    if (millis() - batteryVoltageLowLastBeepTime >= config.BATTERY_LOW_BEEP_INTERVAL)
+    {
+      batteryVoltageLowLastBeepState = !batteryVoltageLowLastBeepState;
+      digitalWrite(config.BUZZER_PIN, batteryVoltageLowLastBeepState);
+      batteryVoltageLowLastBeepTime = millis();
+    }
+  }
+  else
+  {
+    digitalWrite(config.BUZZER_PIN, LOW);
+    batteryVoltageLowLastBeepState = false;
+  }
 }
 
 String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation, Config &config)

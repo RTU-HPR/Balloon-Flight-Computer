@@ -51,7 +51,12 @@ private:
   bool descentActionEnabled = true;
   unsigned long launchRailSwitchOffTime = 0;
 
-  // Timed actions
+  void checkBatteryVoltage(Sensors &sensors, Logging &logging, Config &config);
+  bool batteryVoltageCheckEnabled = true;
+  bool batteryVoltageLowLastBeepState = false;
+  bool batteryVoltageLowLastBeepTime = 0;
+
+    // Timed actions
   void runTimedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
 
   void runBuzzerAction(Config &config);
