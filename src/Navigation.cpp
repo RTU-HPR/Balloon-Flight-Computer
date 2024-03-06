@@ -11,12 +11,12 @@ bool Navigation::beginGps(const Gps_Wrapper::Gps_Config_I2C &gps_config)
       Serial.println("Auto GPS begin failed");
       Serial.println("Reseting GPS module");
       // Reset the gps module
-      pinMode(22, OUTPUT_12MA);
-      digitalWrite(22, LOW);
+      pinMode(6, OUTPUT_12MA);
+      digitalWrite(6, LOW);
       delay(1000);
-      digitalWrite(22, HIGH);
+      digitalWrite(6, HIGH);
       delay(1000);
-      digitalWrite(22, LOW);
+      digitalWrite(6, LOW);
       if (!_gps.begin(gps_config))
       {
         Serial.println("GPS begin failed after reset");
@@ -29,7 +29,6 @@ bool Navigation::beginGps(const Gps_Wrapper::Gps_Config_I2C &gps_config)
 
   return true;
 }
-
 
 bool Navigation::readGps(NAVIGATION_DATA &navigation_data)
 {
