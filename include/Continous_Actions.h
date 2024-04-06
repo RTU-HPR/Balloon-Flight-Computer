@@ -135,6 +135,11 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     {
       formatStorageActionEnabled = true;
     }
+    else if (packet_id == config.RESET_SERVO_POSITION_REQUEST)
+    {
+      servo_1.write(config.SERVO_INITIAL_POSITION);
+      servo_2.write(config.SERVO_INITIAL_POSITION);
+    }
     else if (packet_id == config.BFC_RECOVERY_REQUEST)
     {
       recoveryFireActionEnabled = true;
@@ -267,6 +272,7 @@ void Actions::runRecoveryChannelManagerAction(Config &config)
       }
       // Reset the recovery channel flag, but keep the fire time as it will not be fired again
       recoveryChannelShouldBeFired[i] = false;
+      recoveryChannelFireTimes[i] = 0;
     }
   }
 }
