@@ -1,23 +1,16 @@
 #pragma once
-#include <RadioLib_wrapper.h>
 #include <Config.h>
+#include <Logging.h>
+
+extern Config config;
+extern Logging logging;
 
 class Communication
 {
 private:
+  Radio _radio;
+
 public:
-  RadioLib_Wrapper<radio_module> *_radio;
-
-  /**
-   * @brief Initialise the Communication Radio
-   * @param config balloon config object
-   */
-  bool beginRadio(Config &config);
-
-  /**
-   * @brief Sends the provided message using LoRa
-   * @param msg Message to send
-   * @return Whether the message was sent successfully
-   */
-  bool sendRadio(byte *ccsds_packet, uint16_t ccsds_packet_length);
+  bool begin_radio(Config &config);
+  bool send_radio(byte *ccsds_packet, uint16_t ccsds_packet_length);
 };

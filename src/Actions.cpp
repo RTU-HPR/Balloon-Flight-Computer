@@ -11,15 +11,17 @@ unsigned long last_continous_actions_millis = 0;
 unsigned long last_timed_actions_millis = 0;
 unsigned long last_requested_actions_millis = 0;
 
-void Actions::runAllActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
+void Actions::run_all_actions(Sensors &sensors, Navigation &navigation, Communication &communication)
 {
   last_continous_actions_millis = millis();
-  runContinousActions(sensors, navigation, communication, logging, config);
+  run_continous_actions(sensors, navigation, communication);
   continuous_actions_time = millis() - last_continous_actions_millis;
+
   last_timed_actions_millis = millis();
-  runTimedActions(sensors, navigation, communication, logging, config);
+  run_timed_actions(sensors, navigation, communication);
   timed_actions_time = millis() - last_timed_actions_millis;
+  
   last_requested_actions_millis = millis();
-  runRequestedActions(sensors, navigation, communication, logging, config);
+  run_requested_actions(sensors, navigation, communication);
   requested_actions_time = millis() - last_requested_actions_millis;
 }

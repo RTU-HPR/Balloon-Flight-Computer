@@ -1,12 +1,9 @@
 #include "Communication.h"
 
-bool Communication::beginRadio(Config &config)
+bool Communication::begin_radio(Config &config)
 {
-  // Create a radio object
-  _radio = new RadioLib_Wrapper<radio_module>(nullptr, 5, "SX1268");
-
   // Initialize the radio
-  if (!_radio->begin(config.radio_config))
+  if (!_radio.begin(config.radio_config))
   {
     return false;
   }
@@ -14,13 +11,13 @@ bool Communication::beginRadio(Config &config)
   return true;
 }
 
-bool Communication::sendRadio(byte *ccsds_packet, uint16_t ccsds_packet_length)
+bool Communication::send_radio(byte *ccsds_packet, uint16_t ccsds_packet_length)
 {
-  if (!_radio->get_initialized())
+  if (!_radio.initialized())
   {
     return false;
   }
+
   // Send the message
-  bool status = _radio->transmit_bytes(ccsds_packet, ccsds_packet_length);
-  return status;
+  return _radio.transmit_bytes(ccsds_packet, ccsds_packet_length);
 }
