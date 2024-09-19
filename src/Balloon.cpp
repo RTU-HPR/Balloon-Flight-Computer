@@ -104,11 +104,4 @@ void Balloon::begin()
     logging.log_error("Error initializing sensors");
   }
   logging.log_info("Sensors initialized successfully");
-
-  // Initialise GPS
-  if (!navigation.begin_gps(config))
-  {
-    logging.log_error("GPS begin fail");
-  }
-  logging.log_info("GPS initialized successfully");
 }

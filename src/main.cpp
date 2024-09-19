@@ -15,6 +15,7 @@ extern int continuous_actions_time;
 extern int timed_actions_time;
 extern int requested_actions_time;
 extern int gps_read_time;
+extern int ranging_read_time;
 extern int logging_time;
 extern int sensor_read_time;
 extern int onboard_baro_read_time;
@@ -26,6 +27,7 @@ int continuous_actions_time = 0;
 int timed_actions_time = 0;
 int requested_actions_time = 0;
 int gps_read_time = 0;
+int ranging_read_time = 0;
 int logging_time = 0;
 int sensor_read_time = 0;
 int onboard_baro_read_time = 0;
@@ -57,7 +59,7 @@ void setup()
 void loop()
 {
   last_total_loop_millis = millis();
-  balloon.actions.run_all_actions(balloon.sensors, balloon.navigation, balloon.communication);
+  balloon.actions.run_all_actions(balloon.sensors, balloon.communication);
   total_loop_time = millis() - last_total_loop_millis;
 
   // Reset the watchdog every loop

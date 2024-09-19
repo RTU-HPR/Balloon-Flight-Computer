@@ -4,13 +4,12 @@
 
 // Performance monitoring
 unsigned long last_sensor_read_millis = 0;
-unsigned long last_gps_read_millis = 0;
 unsigned long last_logging_millis = 0;
 
 extern Config config;
 extern Logging logging;
 
-void Actions::run_continous_actions(Sensors &sensors, Navigation &navigation, Communication &communication)
+void Actions::run_continous_actions(Sensors &sensors, Communication &communication)
 {
   // Receive any commands
   if (commandReceiveActionEnabled)
@@ -24,14 +23,6 @@ void Actions::run_continous_actions(Sensors &sensors, Navigation &navigation, Co
     last_sensor_read_millis = millis();
     read_sensors_action(sensors);
     sensor_read_time = millis() - last_sensor_read_millis;
-  }
-
-  // Run the GPS action
-  if (gpsActionEnabled)
-  {
-    last_gps_read_millis = millis();
-    read_gps_action(navigation);
-    gps_read_time = millis() - last_gps_read_millis;
   }
 
   // Check the battery voltage
@@ -49,11 +40,6 @@ void Actions::read_sensors_action(Sensors &sensors)
 {
   // Read all sensors
   sensors.read_sensors();
-}
-
-void Actions::read_gps_action(Navigation &navigation)
-{
-  navigation.read_gps();
 }
 
 void Actions::logging_action()

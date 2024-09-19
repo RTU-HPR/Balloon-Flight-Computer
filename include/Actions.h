@@ -3,7 +3,6 @@
 #include <Logging.h>
 #include <Communication.h>
 #include <Sensors.h>
-#include <Navigation.h>
 
 extern Config config;
 extern Logging logging;
@@ -14,6 +13,7 @@ extern int continuous_actions_time;
 extern int timed_actions_time;
 extern int requested_actions_time;
 extern int gps_read_time;
+extern int ranging_read_time;
 extern int logging_time;
 extern int sensor_read_time;
 
@@ -21,16 +21,13 @@ class Actions
 {
 private:
   // Continuous actions
-  void run_continous_actions(Sensors &sensors, Navigation &navigation, Communication &communication);
+  void run_continous_actions(Sensors &sensors, Communication &communication);
 
   void command_receive_action(Communication &communication);
   bool commandReceiveActionEnabled = true;
 
   void read_sensors_action(Sensors &sensors);
   bool sensorActionEnabled = true;
-
-  void read_gps_action(Navigation &navigation);
-  bool gpsActionEnabled = true;
 
   void logging_action();
   bool loggingActionEnabled = true;
@@ -41,11 +38,11 @@ private:
   bool batteryVoltageLowLastBeepTime = 0;
 
   // Timed actions
-  void run_timed_actions(Sensors &sensors, Navigation &navigation, Communication &communication);
+  void run_timed_actions(Sensors &sensors, Communication &communication);
 
   // Requested actions
-  void run_requested_actions(Sensors &sensors, Navigation &navigation, Communication &communication);
+  void run_requested_actions(Sensors &sensors, Communication &communication);
 
 public:
-  void run_all_actions(Sensors &sensors, Navigation &navigation, Communication &communication);
+  void run_all_actions(Sensors &sensors, Communication &communication);
 };

@@ -12,6 +12,7 @@
 #include <MUFFINS_SD_Card.h>
 #include <MUFFINS_Radio.h>
 #include <MUFFINS_GPS.h>
+#include <MUFFINS_Ranging.h>
 #include <MUFFINS_LSM6DSL.h>
 #include <MUFFINS_MS56XX.h>
 #include <MUFFINS_ADC_Voltage.h>
@@ -51,6 +52,28 @@ public:
       .i2c_address = 0x42,
   };
 
+  // Ranging
+  static const int slave_count = 1;
+  Ranging master;
+  Ranging::Slave slaves[slave_count] = {{.address = 0x12345678}};
+
+  Ranging::Config master_config{
+      .frequency = 2405.6,
+      .cs = 15,
+      .dio0 = 11,
+      .dio1 = 12,
+      .reset = 13,
+      .sync_word = 0xF5,
+      .tx_power = 10,
+      .spreading = 10,
+      .coding_rate = 7,
+      .signal_bw = 406.25,
+      .spi_bus = &SPI,
+      .mode = Ranging::Mode::MASTER,
+      .timeout = 200,
+      .slave_count = slave_count,
+      .slaves = &*slaves};
+
   // SD card
   const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
   const String INFO_FILE_HEADER = "time,info";
@@ -74,7 +97,7 @@ public:
       .type = MS56XX::MS5611,
       .oversampling = MS56XX::OSR_ULTRA_HIGH,
       .reference_pressure = 101325,
-      };
+  };
 
   // IMU
   const LSM6DSL::Config imu_config = {

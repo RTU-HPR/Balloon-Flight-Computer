@@ -5,6 +5,8 @@ unsigned int last_on_board_baro_read_millis = 0;
 unsigned int last_imu_read_millis = 0;
 unsigned int last_battery_voltage_read_millis = 0;
 unsigned int last_outside_thermistor_read_millis = 0;
+unsigned int last_gps_read_millis = 0;
+unsigned int last_ranging_read_millis = 0;
 
 bool Sensors::begin(Config &config)
 {
@@ -34,6 +36,16 @@ bool Sensors::begin(Config &config)
     success = false;
   }
 
+  if (!gps.begin(config.gps_config))
+  {
+    success = false;
+  }
+
+  if (!ranging.begin(config.master_config))
+  {
+    success = false;
+  }
+
   return success;
 }
 
@@ -54,4 +66,12 @@ void Sensors::read_sensors()
   last_battery_voltage_read_millis = millis();
   battery_voltage_reader.read();
   battery_voltage_read_time = millis() - last_battery_voltage_read_millis;
+
+  last_gps_read_millis = millis();
+  gps.read();
+  gps_read_time = millis() - last_gps_read_millis;
+
+  last_ranging_read_millis = millis();
+  ranging.run_master();
+  ranging_read_time = millis() - last_ranging_read_millis;
 }

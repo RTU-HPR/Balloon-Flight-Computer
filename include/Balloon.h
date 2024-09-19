@@ -1,6 +1,5 @@
 #pragma once
 #include <Sensors.h>
-#include <Navigation.h>
 #include <Actions.h>
 #include <Communication.h>
 
@@ -14,7 +13,6 @@ private:
 
 public:
   Sensors sensors;
-  Navigation navigation;
   Actions actions;
   Communication communication;
 
