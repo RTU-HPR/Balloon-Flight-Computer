@@ -56,21 +56,21 @@ public:
    * @param info Info message
    * @return Whether the info message was recorded successfully
    */
-  bool log_info(String info, bool write_to_file=true, bool add_trace=true);
+  bool log_info(String info, bool write_to_file = true, bool add_trace = true);
 
   /**
    * @brief Record an error message
    * @param error Error message
    * @return Whether the error message was recorded successfully
    */
-  bool log_error(String error, bool write_to_file=true, bool add_trace=true);
+  bool log_error(String error, bool write_to_file = true, bool add_trace = true);
 
   /**
    * @brief Record a telemetry message
    * @param data Telemetry data
    * @return Whether the telemetry message was recorded successfully
    */
-  bool log_telemetry(String &data, bool print=false);
+  bool log_telemetry(String &data, bool print = false);
 
   void component_info_function(String msg);
   void component_error_function(String msg);

@@ -1,6 +1,6 @@
 #include <Config.h>
 #include <Logging.h>
-#include <Balloon.h>
+#include <Vehicle.h>
 
 // Config and Logging objects are declared as global variables
 extern Config config;
@@ -35,7 +35,7 @@ int imu_read_time = 0;
 int battery_voltage_read_time = 0;
 int outside_thermistor_read_time = 0;
 
-Balloon balloon;
+Vehicle vehicle;
 
 void setup()
 {
@@ -51,15 +51,15 @@ void setup()
                   freq,
                   freq);
 
-  balloon.begin();
-  logging.log_info("Balloon setup complete");
+  vehicle.begin();
+  logging.log_info("Vehicle setup complete");
   logging.log_info("CPU Speed: " + String(rp2040.f_cpu() / 1000000) + " MHz");
 }
 
 void loop()
 {
   last_total_loop_millis = millis();
-  balloon.actions.run_all_actions(balloon.sensors, balloon.communication);
+  vehicle.actions.run_all_actions(vehicle.sensors, vehicle.communication);
   total_loop_time = millis() - last_total_loop_millis;
 
   // Reset the watchdog every loop

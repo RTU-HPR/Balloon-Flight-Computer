@@ -1,9 +1,9 @@
-#include "Balloon.h"
+#include "Vehicle.h"
 
 extern Config config;
 extern Logging logging;
 
-bool Balloon::init_communication_busses()
+bool Vehicle::init_communication_busses()
 {
   bool success = true;
 
@@ -34,7 +34,7 @@ bool Balloon::init_communication_busses()
   return success;
 }
 
-void Balloon::begin()
+void Vehicle::begin()
 {
   // Initialize the logger
   if (!logging.begin_logging())
@@ -70,18 +70,20 @@ void Balloon::begin()
   logging.log_info("Sensor power enabled");
 
   // Set the recovery channels to output and pull them low
-  pinMode(config.RECOVERY_CHANNEL_1, OUTPUT_12MA);
-  pinMode(config.RECOVERY_CHANNEL_2, OUTPUT_12MA);
-  digitalWrite(config.RECOVERY_CHANNEL_1, LOW);
-  digitalWrite(config.RECOVERY_CHANNEL_2, LOW);
+  pinMode(config.RECOVERY_CHANNEL_MOSFET_1, OUTPUT_12MA);
+  pinMode(config.RECOVERY_CHANNEL_MOSFET_2, OUTPUT_12MA);
+  pinMode(config.RECOVERY_CHANNEL_SIGNAL_1, OUTPUT_12MA);
+  pinMode(config.RECOVERY_CHANNEL_SIGNAL_2, OUTPUT_12MA);
+  digitalWrite(config.RECOVERY_CHANNEL_MOSFET_1, LOW);
+  digitalWrite(config.RECOVERY_CHANNEL_MOSFET_2, LOW);
+  digitalWrite(config.RECOVERY_CHANNEL_SIGNAL_1, LOW);
+  digitalWrite(config.RECOVERY_CHANNEL_SIGNAL_2, LOW);
 
   logging.log_info("Recovery channels set to output and pulled low");
 
-  // Set the buzzers to output and pull them low
+  // Set the buzzer to output and pull it low
   pinMode(config.BUZZER_PIN, OUTPUT_12MA);
-  pinMode(config.OUTSIDE_BUZZER_PIN, OUTPUT_12MA);
   digitalWrite(config.BUZZER_PIN, LOW);
-  digitalWrite(config.OUTSIDE_BUZZER_PIN, LOW);
 
   // Initialize the SD card for logging
   // If successful, all previous and future logs will be written to the SD card

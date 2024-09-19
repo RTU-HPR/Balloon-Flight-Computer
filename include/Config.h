@@ -1,5 +1,12 @@
 #pragma once
+
+// Define which vehicle type is being used
+#define VEHICLE_TYPE 1          // BALLOON - 1 | PAYLOAD - 2
+#define RANGING 0               // 0 - No ranging | 1 - Ranging Master mode | 2 - Ranging Slave mode
+#define RECOVERY_CHANNEL_TYPE 0 // 0 - Disabled | 1 - Servo | 2 - Pyro
+
 // Main libraries
+// Public libraries
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -8,17 +15,22 @@
 #include <cppQueue.h>
 #include <Servo.h>
 
+// Custom libraries
 #include <MUFFINS_Component_Base.h>
 #include <MUFFINS_SD_Card.h>
 #include <MUFFINS_Radio.h>
 #include <MUFFINS_GPS.h>
-#include <MUFFINS_Ranging.h>
 #include <MUFFINS_LSM6DSL.h>
 #include <MUFFINS_MS56XX.h>
 #include <MUFFINS_ADC_Voltage.h>
 #include <MUFFINS_CCSDS_Packets.h>
 #include <MUFFINS_Checksums.h>
 #include <MUFFINS_Thermistor.h>
+
+// Specific libraries
+#if RANGING != 0
+#include <MUFFINS_Ranging.h>
+#endif
 
 class Config
 {
@@ -50,44 +62,6 @@ public:
       .dynamic_model = DYN_MODEL_AIRBORNE2g,
       .wire = &Wire,
       .i2c_address = 0x42,
-  };
-
-  // Ranging
-  static const int slave_count = 1;
-  Ranging master;
-  Ranging::Slave slaves[slave_count] = {{.address = 0x12345678}};
-
-  Ranging::Config master_config{
-      .frequency = 2405.6,
-      .cs = 15,
-      .dio0 = 11,
-      .dio1 = 12,
-      .reset = 13,
-      .sync_word = 0xF5,
-      .tx_power = 10,
-      .spreading = 10,
-      .coding_rate = 7,
-      .signal_bw = 406.25,
-      .spi_bus = &SPI,
-      .mode = Ranging::Mode::MASTER,
-      .timeout = 200,
-      .slave_count = slave_count,
-      .slaves = &*slaves};
-
-  // SD card
-  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
-  const String INFO_FILE_HEADER = "time,info";
-  const String ERROR_FILE_HEADER = "time,error";
-
-  const SD_Card::Config sd_card_config = {
-      .spi_bus = &SPI,
-      .cs_pin = 14,
-      .telemetry_file_path_base = "/BFC_TELEMETRY_",
-      .info_file_path_base = "/BFC_INFO_",
-      .error_file_path_base = "/BFC_ERROR_",
-      .telemetry_file_header = TELMETRY_FILE_HEADER,
-      .info_file_header = INFO_FILE_HEADER,
-      .error_file_header = ERROR_FILE_HEADER,
   };
 
   // MS56XX
@@ -128,6 +102,69 @@ public:
       .R2_value = 24000,
   };
 
+// Ranging
+#if RANGING == 1
+  static const int slave_count = 1;
+  Ranging master;
+  Ranging::Slave slaves[slave_count] = {{.address = 0x12345678}};
+
+  Ranging::Config master_config{
+      .frequency = 2405.6,
+      .cs = 15,
+      .dio0 = 11,
+      .dio1 = 12,
+      .reset = 13,
+      .sync_word = 0xF5,
+      .tx_power = 10,
+      .spreading = 10,
+      .coding_rate = 7,
+      .signal_bw = 406.25,
+      .spi_bus = &SPI,
+      .mode = Ranging::Mode::MASTER,
+      .timeout = 200,
+      .slave_count = slave_count,
+      .slaves = &*slaves};
+#elif RANGING == 2
+  Ranging slave;
+  Ranging::Config slave_config{
+      .frequency = 2405.6,
+      .cs = 15,
+      .dio0 = 11,
+      .dio1 = 12,
+      .reset = 13,
+      .sync_word = 0xF5,
+      .tx_power = 10,
+      .spreading = 10,
+      .coding_rate = 7,
+      .signal_bw = 406.25,
+      .spi_bus = &SPI,
+      .mode = Ranging::Mode::SLAVE,
+      .timeout = 200,
+      .address = 0x12345678};
+#endif
+
+  // SD card
+  const SD_Card::Config sd_card_config = {
+      .spi_bus = &SPI,
+      .cs_pin = 14,
+      .telemetry_file_path_base = "/BFC_TELEMETRY_",
+      .info_file_path_base = "/BFC_INFO_",
+      .error_file_path_base = "/BFC_ERROR_",
+      .telemetry_file_header = TELMETRY_FILE_HEADER,
+      .info_file_header = INFO_FILE_HEADER,
+      .error_file_header = ERROR_FILE_HEADER,
+  };
+
+  const String INFO_FILE_HEADER = "time,info";
+  const String ERROR_FILE_HEADER = "time,error";
+
+  // Define the telemetry file header based on the vehicle type
+#if VEHICLE_TYPE == 1
+  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
+#elif VEHCILE_TYPE == 2
+  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
+#endif
+
 // Info/error queue
 #define QUEUE_IMPLEMENTATION FIFO
 
@@ -159,20 +196,34 @@ public:
   const float BATTERY_LOW_VOLTAGE = 0;
   const int BATTERY_LOW_BEEP_INTERVAL = 200;
 
-  // Servos
-  const int RECOVERY_CHANNEL_1 = 19;
-  const int RECOVERY_CHANNEL_2 = 18;
+  // Recovery channels
+  // In Payload V2 schematic, mosfet pins are called RECOV_1 and RECOV_2,
+  // but signal pins are called PYRO_1 and PYRO_2
+  const int RECOVERY_CHANNEL_MOSFET_1 = 21;
+  const int RECOVERY_CHANNEL_MOSFET_2 = 20;
+  const int RECOVERY_CHANNEL_SIGNAL_1 = 19;
+  const int RECOVERY_CHANNEL_SIGNAL_2 = 18;
+
+// Servo
+#if RECOVERY_CHANNEL_TYPE == 1
   const int SERVO_INITIAL_POSITION = 75;
   const int SERVO_FINAL_POSITION = 0;
+  const int TIME_BETWEEN_SERVO_POSITIONS = 1000; // ms
+#endif
+  // Pyro
+  // ...
 
+  // Switch
   const int LAUNCH_RAIL_SWITCH_PIN = 10;
+// For now switch is used only on payload
+#if VEHICLE_TYPE == 2
   const int LAUNCH_RAIL_SWITCH_OFF_THRESHOLD = 5000;
   const int DESCENT_TIME_BEFORE_PARACHUTE_DEPLOYMENT = 30000;
   const int LAUNCH_RAIL_SWITCH_ALTITUDE_THRESHOLD = 300;
+#endif
 
   // Buzzer
   const int BUZZER_PIN = 16;
-  const int OUTSIDE_BUZZER_PIN = 20;
   const int BUZZER_BEEP_TIME = 2000;
   const int BUZZER_ACTION_START_TIME = 3600 * 1000; // 3600 seconds after turning on == 1 hour
 

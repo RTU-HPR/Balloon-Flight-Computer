@@ -3,7 +3,7 @@
 #include <Actions.h>
 #include <Communication.h>
 
-class Balloon
+class Vehicle
 {
 private:
   /**

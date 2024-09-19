@@ -25,7 +25,10 @@ public:
   Thermistor outside_thermistor = Thermistor("Outside Thermistor", component_info_function, component_error_function);
   ADC_Voltage battery_voltage_reader = ADC_Voltage("Battery Voltage", component_info_function, component_error_function);
   GPS gps = GPS("GPS", component_info_function, component_error_function);
+
+#if RANGING == 1
   Ranging ranging = Ranging("Ranging", component_info_function, component_error_function);
+#endif
 
   /**
    * @brief Initializes all sensor objects and gets them ready to be used.

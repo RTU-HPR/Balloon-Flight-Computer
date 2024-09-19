@@ -41,10 +41,12 @@ bool Sensors::begin(Config &config)
     success = false;
   }
 
+#if RANGING == 1
   if (!ranging.begin(config.master_config))
   {
     success = false;
   }
+#endif
 
   return success;
 }
@@ -71,7 +73,9 @@ void Sensors::read_sensors()
   gps.read();
   gps_read_time = millis() - last_gps_read_millis;
 
+#if RANGING == 1
   last_ranging_read_millis = millis();
   ranging.run_master();
   ranging_read_time = millis() - last_ranging_read_millis;
+#endif
 }

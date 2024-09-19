@@ -23,7 +23,7 @@ bool Logging::begin_sd_card(Config &config)
 bool Logging::log_info(String info, bool write_to_file, bool add_trace)
 {
   String message = "";
-  
+
   if (add_trace)
   {
     message = "Time ON: " + String(millis()) + "| Balloon Info: " + info;
@@ -104,7 +104,6 @@ void Logging::component_error_function(String message)
 {
   log_error(message, true, false);
 }
-
 
 bool Logging::_write_to_file()
 {

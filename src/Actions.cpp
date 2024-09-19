@@ -20,7 +20,7 @@ void Actions::run_all_actions(Sensors &sensors, Communication &communication)
   last_timed_actions_millis = millis();
   run_timed_actions(sensors, communication);
   timed_actions_time = millis() - last_timed_actions_millis;
-  
+
   last_requested_actions_millis = millis();
   run_requested_actions(sensors, communication);
   requested_actions_time = millis() - last_requested_actions_millis;
