@@ -105,7 +105,7 @@ void Logging::component_error_function(String message)
   log_error(message, true, false);
 }
 
-bool Logging::_write_to_file()
+bool Logging::write_to_file()
 {
   if (!_sd_card_initialized)
   {

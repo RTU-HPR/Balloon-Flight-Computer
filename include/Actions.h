@@ -20,22 +20,22 @@ extern int sensor_read_time;
 class Actions
 {
 private:
-  // Continuous actions
-  void run_continous_actions(Sensors &sensors, Communication &communication);
-
-  void command_receive_action(Communication &communication);
-  bool commandReceiveActionEnabled = true;
+  void receive_commands_action(Communication &communication);
+  bool command_receive_action_enabled = true;
 
   void read_sensors_action(Sensors &sensors);
-  bool sensorActionEnabled = true;
+  bool sensor_action_enabled = true;
 
   void logging_action();
-  bool loggingActionEnabled = true;
+  bool logging_action_enabled = true;
 
-  void read_battery_voltage_action(Sensors &sensors);
-  bool batteryVoltageCheckEnabled = true;
-  bool batteryVoltageLowLastBeepState = false;
-  bool batteryVoltageLowLastBeepTime = 0;
+  void check_battery_voltage_action(Sensors &sensors);
+  bool battery_voltage_check_enabled = true;
+  bool battery_voltage_low_last_beep_state = false;
+  bool battery_voltage_low_last_beep_time = 0;
+
+  // Continuous actions
+  void run_continous_actions(Sensors &sensors, Communication &communication);
 
   // Timed actions
   void run_timed_actions(Sensors &sensors, Communication &communication);

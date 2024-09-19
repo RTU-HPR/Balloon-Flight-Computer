@@ -1,7 +1,7 @@
 #pragma once
 
 // Define which vehicle type is being used
-#define VEHICLE_TYPE 1          // BALLOON - 1 | PAYLOAD - 2
+#define VEHICLE_TYPE 1          // 1 - Balloon | 2 - Payload
 #define RANGING 0               // 0 - No ranging | 1 - Ranging Master mode | 2 - Ranging Slave mode
 #define RECOVERY_CHANNEL_TYPE 0 // 0 - Disabled | 1 - Servo | 2 - Pyro
 
@@ -143,6 +143,16 @@ public:
       .address = 0x12345678};
 #endif
 
+  const String INFO_FILE_HEADER = "time,info";
+  const String ERROR_FILE_HEADER = "time,error";
+
+  // Define the telemetry file header based on the vehicle type
+#if VEHICLE_TYPE == 1
+  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
+#elif VEHICLE_TYPE == 2
+  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
+#endif
+
   // SD card
   const SD_Card::Config sd_card_config = {
       .spi_bus = &SPI,
@@ -154,16 +164,6 @@ public:
       .info_file_header = INFO_FILE_HEADER,
       .error_file_header = ERROR_FILE_HEADER,
   };
-
-  const String INFO_FILE_HEADER = "time,info";
-  const String ERROR_FILE_HEADER = "time,error";
-
-  // Define the telemetry file header based on the vehicle type
-#if VEHICLE_TYPE == 1
-  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
-#elif VEHCILE_TYPE == 2
-  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
-#endif
 
 // Info/error queue
 #define QUEUE_IMPLEMENTATION FIFO
@@ -214,7 +214,7 @@ public:
   // ...
 
   // Switch
-  const int LAUNCH_RAIL_SWITCH_PIN = 10;
+  const int SWITCH_PIN = 10;
 // For now switch is used only on payload
 #if VEHICLE_TYPE == 2
   const int LAUNCH_RAIL_SWITCH_OFF_THRESHOLD = 5000;

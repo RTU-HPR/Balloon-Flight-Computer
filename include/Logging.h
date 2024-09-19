@@ -49,7 +49,7 @@ public:
   /**
    * @brief Write the telemetry, info, and error messages to the SD card
    */
-  bool _write_to_file();
+  bool write_to_file();
 
   /**
    * @brief Record an info message

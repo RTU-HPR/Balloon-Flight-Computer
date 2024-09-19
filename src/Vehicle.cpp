@@ -69,6 +69,9 @@ void Vehicle::begin()
 
   logging.log_info("Sensor power enabled");
 
+  // Set the switch pin to input
+  pinMode(config.SWITCH_PIN, INPUT_PULLUP);
+
   // Set the recovery channels to output and pull them low
   pinMode(config.RECOVERY_CHANNEL_MOSFET_1, OUTPUT_12MA);
   pinMode(config.RECOVERY_CHANNEL_MOSFET_2, OUTPUT_12MA);
@@ -94,7 +97,7 @@ void Vehicle::begin()
   logging.log_info("SD card initialized successfully");
 
   // Initialise the radio
-  if (!communication.begin_radio(config))
+  if (!communication.radio.begin(config.radio_config))
   {
     logging.log_error("Radio begin fail");
   }
