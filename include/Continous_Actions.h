@@ -23,16 +23,26 @@ void Actions::run_continous_actions(Sensors &sensors, Communication &communicati
     sensor_read_time = millis() - last_sensor_read_millis;
   }
 
+  if (battery_voltage_check_enabled)
+  {
+    check_battery_voltage_action(sensors);
+  }
+
+  if (switch_state_check_enabled)
+  {
+    check_switch_state_action();
+  }
+
+  if (telemetry_action_enabled)
+  {
+    telemetry_action(sensors);
+  }
+
   if (logging_action_enabled)
   {
     last_logging_millis = millis();
     logging_action();
     logging_time = millis() - last_logging_millis;
-  }
-
-  if (battery_voltage_check_enabled)
-  {
-    check_battery_voltage_action(sensors);
   }
 }
 
@@ -144,4 +154,108 @@ void Actions::check_battery_voltage_action(Sensors &sensors)
     digitalWrite(config.BUZZER_PIN, LOW);
     battery_voltage_low_last_beep_state = false;
   }
+}
+
+void Actions::check_switch_state_action()
+{
+  bool current_state = !digitalRead(config.SWITCH_PIN);
+
+  if (current_state != switch_current_state)
+  {
+    logging.log_info("Switch state changed - New state: " + String(current_state ? "ON" : "OFF"));
+    switch_current_state = current_state;
+  }
+}
+
+void Actions::telemetry_action(Sensors &sensors)
+{
+  // CSV header values are defined in Config.h for each vehicle type
+  String telemetry_data = "";
+
+#if VEHICLE_TYPE == 1
+  // INIT_HEADER_VALUES
+  telemetry_data += String(telemetry_index) + ",";
+  telemetry_data += String(millis()) + ",";
+  // GPS_HEADER_VALUES
+  telemetry_data += String(sensors.gps.data.epoch_microseconds) + ",";
+  telemetry_data += String(sensors.gps.data.lat, 6) + ",";
+  telemetry_data += String(sensors.gps.data.lng, 6) + ",";
+  telemetry_data += String(sensors.gps.data.altitude) + ",";
+  telemetry_data += String(sensors.gps.data.ground_speed) + ",";
+  telemetry_data += String(sensors.gps.data.satellites) + ",";
+  telemetry_data += String(sensors.gps.data.pdop) + ",";
+  // ONBOARD_BARO_HEADER_VALUES
+  telemetry_data += String(sensors.onboard_baro.data.temperature, 2) + ",";
+  telemetry_data += String(sensors.onboard_baro.data.pressure, 2) + ",";
+  telemetry_data += String(sensors.onboard_baro.data.altitude, 2) + ",";
+  // OUTSIDE_THERMISTOR_HEADER_VALUES
+  telemetry_data += String(sensors.outside_thermistor.data.temperature, 2) + ",";
+  // IMU_HEADER_VALUES
+  telemetry_data += String(sensors.imu.data.accel_x, 2) + ",";
+  telemetry_data += String(sensors.imu.data.accel_y, 2) + ",";
+  telemetry_data += String(sensors.imu.data.accel_z, 2) + ",";
+  telemetry_data += String(sensors.imu.data.gyro_x, 2) + ",";
+  telemetry_data += String(sensors.imu.data.gyro_y, 2) + ",";
+  telemetry_data += String(sensors.imu.data.gyro_z, 2) + ",";
+  telemetry_data += String(sensors.imu.data.temperature, 2) + ",";
+  // BATTERY_VOLTAGE_HEADER_VALUES
+  telemetry_data += String(sensors.battery_voltage_reader.data.voltage, 2) + ",";
+  // SWITCH_STATE_HEADER_VALUES
+  telemetry_data += String(switch_current_state) + ",";
+  // PERFORMANCE_HEADER_VALUES
+  telemetry_data += String(rp2040.getFreeHeap()) + ",";
+  telemetry_data += String(total_loop_time) + ",";
+  telemetry_data += String(continuous_actions_time) + ",";
+  telemetry_data += String(timed_actions_time) + ",";
+  telemetry_data += String(requested_actions_time) + ",";
+  telemetry_data += String(gps_read_time) + ",";
+  telemetry_data += String(logging_time) + ",";
+  telemetry_data += String(sensor_read_time) + ",";
+  telemetry_data += String(onboard_baro_read_time) + ",";
+  telemetry_data += String(imu_read_time);
+#elif VEHICLE_TYPE == 2
+  // INIT_HEADER_VALUES
+  telemetry_data += String(telemetry_index) + ",";
+  telemetry_data += String(millis()) + ",";
+  // GPS_HEADER_VALUES
+  telemetry_data += String(sensors.gps.data.epoch_microseconds) + ",";
+  telemetry_data += String(sensors.gps.data.lat, 6) + ",";
+  telemetry_data += String(sensors.gps.data.lng, 6) + ",";
+  telemetry_data += String(sensors.gps.data.altitude) + ",";
+  telemetry_data += String(sensors.gps.data.ground_speed) + ",";
+  telemetry_data += String(sensors.gps.data.satellites) + ",";
+  telemetry_data += String(sensors.gps.data.pdop) + ",";
+  // ONBOARD_BARO_HEADER_VALUES
+  telemetry_data += String(sensors.onboard_baro.data.temperature, 2) + ",";
+  telemetry_data += String(sensors.onboard_baro.data.pressure, 2) + ",";
+  telemetry_data += String(sensors.onboard_baro.data.altitude, 2) + ",";
+  // OUTSIDE_THERMISTOR_HEADER_VALUES
+  telemetry_data += String(sensors.outside_thermistor.data.temperature, 2) + ",";
+  // IMU_HEADER_VALUES
+  telemetry_data += String(sensors.imu.data.accel_x, 2) + ",";
+  telemetry_data += String(sensors.imu.data.accel_y, 2) + ",";
+  telemetry_data += String(sensors.imu.data.accel_z, 2) + ",";
+  telemetry_data += String(sensors.imu.data.gyro_x, 2) + ",";
+  telemetry_data += String(sensors.imu.data.gyro_y, 2) + ",";
+  telemetry_data += String(sensors.imu.data.gyro_z, 2) + ",";
+  telemetry_data += String(sensors.imu.data.temperature, 2) + ",";
+  // BATTERY_VOLTAGE_HEADER_VALUES
+  telemetry_data += String(sensors.battery_voltage_reader.data.voltage, 2) + ",";
+  // SWITCH_STATE_HEADER_VALUES
+  telemetry_data += String(switch_current_state) + ",";
+  // PERFORMANCE_HEADER_VALUES
+  telemetry_data += String(rp2040.getFreeHeap()) + ",";
+  telemetry_data += String(total_loop_time) + ",";
+  telemetry_data += String(continuous_actions_time) + ",";
+  telemetry_data += String(timed_actions_time) + ",";
+  telemetry_data += String(requested_actions_time) + ",";
+  telemetry_data += String(gps_read_time) + ",";
+  telemetry_data += String(logging_time) + ",";
+  telemetry_data += String(sensor_read_time) + ",";
+  telemetry_data += String(onboard_baro_read_time) + ",";
+  telemetry_data += String(imu_read_time);
+#endif
+
+  logging.log_telemetry(telemetry_data);
+  telemetry_index++;
 }

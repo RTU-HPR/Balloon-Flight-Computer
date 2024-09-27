@@ -34,13 +34,16 @@ private:
   bool battery_voltage_low_last_beep_state = false;
   bool battery_voltage_low_last_beep_time = 0;
 
-  // Continuous actions
+  void check_switch_state_action();
+  bool switch_state_check_enabled = true;
+  bool switch_current_state = false;
+
+  void telemetry_action(Sensors &sensors);
+  bool telemetry_action_enabled = true;
+  unsigned long telemetry_index = 1;
+
   void run_continous_actions(Sensors &sensors, Communication &communication);
-
-  // Timed actions
   void run_timed_actions(Sensors &sensors, Communication &communication);
-
-  // Requested actions
   void run_requested_actions(Sensors &sensors, Communication &communication);
 
 public:

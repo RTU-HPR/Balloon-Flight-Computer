@@ -53,15 +53,20 @@ void Vehicle::begin()
   {
     delay(100);
   }
-
-  logging.log_info("PC Serial initialized");
+  if (Serial || config.WAIT_PC)
+  {
+    logging.log_info("PC serial initialized");
+  }
 
   // Initialize the communication busses
   if (!init_communication_busses())
   {
     logging.log_error("Error in initializing communication busses");
   }
-  logging.log_info("All communication busses initialized successfully");
+  else
+  {
+    logging.log_info("All communication busses initialized successfully");
+  }
 
   // Enable sensor power
   pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
@@ -94,19 +99,28 @@ void Vehicle::begin()
   {
     logging.log_error("SD begin fail");
   }
-  logging.log_info("SD card initialized successfully");
+  else
+  {
+    logging.log_info("SD card initialized successfully");
+  }
 
   // Initialise the radio
   if (!communication.radio.begin(config.radio_config))
   {
     logging.log_error("Radio begin fail");
   }
-  logging.log_info("Radio initialized successfully");
+  else
+  {
+    logging.log_info("Radio initialized successfully");
+  }
 
   // Initialise all sensors
   if (!sensors.begin(config))
   {
     logging.log_error("Error initializing sensors");
   }
-  logging.log_info("Sensors initialized successfully");
+  else
+  {
+    logging.log_info("Sensors initialized successfully");
+  }
 }

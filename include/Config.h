@@ -147,19 +147,50 @@ public:
   const String ERROR_FILE_HEADER = "time,error";
 
   // Define the telemetry file header based on the vehicle type
+
 #if VEHICLE_TYPE == 1
-  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
+  const String INIT_HEADER_VALUES = "index,time_on_ms";
+  const String GPS_HEADER_VALUES = "epoch_time_usec,latitude,longitude,gps_altitude,gps_speed,satellites,gps_pdop";
+  const String ONBOARD_BARO_HEADER_VALUES = "onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude";
+  const String OUTSIDE_THERMISTOR_HEADER_VALUES = "outside_thermistor_temp";
+  const String IMU_HEADER_VALUES = "imu_accel_x,imu_accel_y,imu_accel_z,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp";
+  const String BATTERY_VOLTAGE_HEADER_VALUES = "battery_voltage";
+  const String SWITCH_STATE_HEADER_VALUES = "switch_state";
+  const String PERFORMANCE_HEADER_VALUES = "used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time";
+  const String TELMETRY_FILE_HEADER = INIT_HEADER_VALUES +
+                                      +"," + GPS_HEADER_VALUES +
+                                      +"," + ONBOARD_BARO_HEADER_VALUES +
+                                      +"," + OUTSIDE_THERMISTOR_HEADER_VALUES +
+                                      +"," + IMU_HEADER_VALUES +
+                                      +"," + BATTERY_VOLTAGE_HEADER_VALUES +
+                                      +"," + SWITCH_STATE_HEADER_VALUES +
+                                      +"," + PERFORMANCE_HEADER_VALUES;
 #elif VEHICLE_TYPE == 2
-  const String TELMETRY_FILE_HEADER = "index,time_on_ms,gps_epoch_time,gps_hour:gps_minute:gps_second,gps_lat,gps_lng,gps_altitude,gps_speed,gps_satellites,gps_heading,gps_pdop,onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude,outside_thermistor_temp,imu_accel_x,imu_accel_y,imu_accel_z,imu_heading,imu_pitch,imu_roll,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp,battery_voltage,used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time,battery_voltage_read_time,outside_thermistor_read_time";
+  const String INIT_HEADER_VALUES = "index,time_on_ms";
+  const String GPS_HEADER_VALUES = "epoch_time_usec,latitude,longitude,gps_altitude,gps_speed,satellites,gps_pdop";
+  const String ONBOARD_BARO_HEADER_VALUES = "onboard_baro_temp,onboard_baro_pressure,onboard_baro_altitude";
+  const String OUTSIDE_THERMISTOR_HEADER_VALUES = "outside_thermistor_temp";
+  const String IMU_HEADER_VALUES = "imu_accel_x,imu_accel_y,imu_accel_z,imu_gyro_x,imu_gyro_y,imu_gyro_z,imu_temp";
+  const String BATTERY_VOLTAGE_HEADER_VALUES = "battery_voltage";
+  const String SWITCH_STATE_HEADER_VALUES = "switch_state";
+  const String PERFORMANCE_HEADER_VALUES = "used_heap,loop_time,continuous_actions_time,timed_actions_time,requested_actions_time,gps_read_time,logging_time,sensor_read_time,onboard_baro_read_time,imu_read_time";
+      const String TELMETRY_FILE_HEADER = INIT_HEADER_VALUES +
+                                          +"," + GPS_HEADER_VALUES +
+                                          +"," + ONBOARD_BARO_HEADER_VALUES +
+                                          +"," + OUTSIDE_THERMISTOR_HEADER_VALUES +
+                                          +"," + IMU_HEADER_VALUES +
+                                          +"," + BATTERY_VOLTAGE_HEADER_VALUES +
+                                          +"," + SWITCH_STATE_HEADER_VALUES +
+                                          +"," + PERFORMANCE_HEADER_VALUES;
 #endif
 
   // SD card
   const SD_Card::Config sd_card_config = {
       .spi_bus = &SPI,
       .cs_pin = 14,
-      .telemetry_file_path_base = "/BFC_TELEMETRY_",
-      .info_file_path_base = "/BFC_INFO_",
-      .error_file_path_base = "/BFC_ERROR_",
+      .telemetry_file_path_base = "/TELEMETRY_",
+      .info_file_path_base = "/INFO_",
+      .error_file_path_base = "/ERROR_",
       .telemetry_file_header = TELMETRY_FILE_HEADER,
       .info_file_header = INFO_FILE_HEADER,
       .error_file_header = ERROR_FILE_HEADER,
